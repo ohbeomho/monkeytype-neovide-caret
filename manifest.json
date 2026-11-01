@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Neovide-like Caret for Monkeytype",
+  "version": "0.1.0",
+  "description": "Replaces Monkeytype's typing caret with an animated Neovide-like cursor.",
+  "content_scripts": [
+    {
+      "matches": ["https://monkeytype.com/*", "https://*.monkeytype.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
