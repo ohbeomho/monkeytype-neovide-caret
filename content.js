@@ -41,14 +41,13 @@
     const cornerOrder = [0, 1, 2, 3]
     let pixelRatio = 1
 
-    // Wait for Monkeytype's load-time caret moves to settle before choosing
-    // the position used to determine the cursor's corner order.
-    const zeroPos = { x: 0, y: 0, initialized: false }
+    // Initial cursor x position
+    let zeroPosX = { value: 0, initialized: false }
     let initialCandidate = null
     let stableFrames = 0
 
     function setCornerOrder(nextX, nextY) {
-        if (nextX <= zeroPos.x + 10) {
+        if (nextX <= zeroPosX.value + 10) {
             cornerOrder[3] = 0
             cornerOrder[0] = 1
             cornerOrder[2] = 2
@@ -72,6 +71,8 @@
         canvas.width = Math.round(window.innerWidth * pixelRatio)
         canvas.height = Math.round(window.innerHeight * pixelRatio)
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
+
+        zeroPosX.initialized = false
     }
 
     function readCaret() {
@@ -127,38 +128,22 @@
         cursor.initialized = true
     }
 
-    function captureInitialPosition() {
-        if (zeroPos.initialized) return
-        if (!target.visible) {
-            initialCandidate = null
-            stableFrames = 0
-            return
-        }
+    function initializeZeroPosX() {
+        if (zeroPosX.initialized) return
 
-        if (
-            initialCandidate &&
-            Math.abs(target.x - initialCandidate.x) < 0.1 &&
-            Math.abs(target.y - initialCandidate.y) < 0.1
-        ) {
-            stableFrames++
-        } else {
-            initialCandidate = { x: target.x, y: target.y }
-            stableFrames = 0
-        }
+        const firstWord = document.querySelector("#words .word")
+        if (!firstWord || !cursor.initialized) return
 
-        // Require three unchanged frame-to-frame samples (about 50 ms at 60 Hz).
-        if (stableFrames >= 3) {
-            zeroPos.x = target.x
-            zeroPos.y = target.y
-            zeroPos.initialized = true
-        }
+        zeroPosX.value =
+            firstWord.getBoundingClientRect().left + target.width / 2
+        zeroPosX.initialized = true
     }
 
     function animate() {
         readCaret()
-        captureInitialPosition()
+        initializeZeroPosX()
 
-        if (target.visible && zeroPos.initialized && !cursor.initialized) {
+        if (target.visible && !cursor.initialized) {
             initializeCursor()
         }
 
